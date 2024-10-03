@@ -32,12 +32,13 @@ async function initialLoad() {
         "x-api-key": API_KEY,
       },
     });
-    
+
     if (response.ok) {
       console.log("Promise resolved and HTTP status is successful");
       // ...do something with the response
       const jsonData = await response.json();
       // console.log(jsonData);
+      Carousel.clear();
       for (let i of jsonData) {
         // console.log(i);
         let breedOptions = document.createElement("option");
@@ -45,6 +46,10 @@ async function initialLoad() {
         breedOptions.textContent = i.name;
         breedSelect.appendChild(breedOptions);
       }
+
+      // Selecting the first breed of cats
+      breedSelect.selectedIndex = 0;
+      await handleSelect({ target: breedSelect });
     } else {
       console.error("Promise resolved but HTTP status failed");
     }
@@ -70,13 +75,14 @@ initialLoad();
  * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
  */
 
-breedSelect.addEventListener("change", handleClick);
+breedSelect.addEventListener("change", handleSelect);
 
-async function handleClick(event) {
-  const targetValue = event.target.value;
+async function handleSelect(event) {
+  const breedId = event.target.value;
   // console.log(targetValue);
+  Carousel.clear();
   try {
-    const newCatUrl = `https://api.thecatapi.com/v1/breeds/${targetValue}`;
+    const newCatUrl = `https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}&limit=7`;
     //catUrl + "/" + targetValue
     const response2 = await fetch(newCatUrl, {
       headers: {
@@ -87,24 +93,27 @@ async function handleClick(event) {
     // `https://cdn2.thecatapi.com/images/jvg3XfEdC.jpg`;
     if (response2.ok) {
       console.log("Second Promise resolved and HTTP status is successful");
-      const breedData = await response2.json();
-      console.log(breedData);
-      const imgId = breedData.reference_image_id;
-      // Clear previous carousel items
-      Carousel.clear();
+      const breedArrays = await response2.json();
+      console.log(breedArrays);
+      // console.log(breedArrays[0].breeds[0]);
 
-      if (imgId) {
-        const carouselItem = Carousel.createCarouselItem(
-          `https://cdn2.thecatapi.com/images/${imgId}.jpg`,
-          `Image of a(n) ${breedData.name}`,
-          breedData.id
-        );
-        // Append the new carousel item
-        Carousel.appendCarousel(carouselItem);
-      } else {
-        console.warn(`No image found for breed: ${breedData.name}`);
-      }
+      breedArrays.forEach((img) => {
+        // console.log(img.breeds)
+        if (img.url) {
+          const carouselItem = Carousel.createCarouselItem(
+            img.url,
+            `Image of a(n) ${img.breeds[0].name}`,
+            img.id
+          );
+          // Append the new carousel item
+          Carousel.appendCarousel(carouselItem);
+        } else {
+          console.warn(`No image found for breed: ${img.breeds[0].name}`);
+        }
+      });
 
+      const breedData = breedArrays[0].breeds[0];
+      // console.log(breedData)
       // Update the information section
       infoDump.innerHTML = `
         <h2>${breedData.name}</h2>
