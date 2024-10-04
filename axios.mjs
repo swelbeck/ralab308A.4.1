@@ -26,33 +26,30 @@ const catUrl = "https://api.thecatapi.com/v1/breeds";
  */
 async function initialLoad() {
   try {
-    const response = await fetch(catUrl, {
+    const response = await axios.get(catUrl, {
       headers: {
         "content-type": "application/json",
         "x-api-key": API_KEY,
       },
     });
 
-    if (response.ok) {
-      console.log("Promise resolved and HTTP status is successful");
-      // ...do something with the response
-      const jsonData = await response.json();
-      // console.log(jsonData);
-      Carousel.clear();
-      for (let i of jsonData) {
-        // console.log(i);
-        let breedOptions = document.createElement("option");
-        breedOptions.value = i.id;
-        breedOptions.textContent = i.name;
-        breedSelect.appendChild(breedOptions);
-      }
-
-      // Selecting the first breed of cats
-      breedSelect.selectedIndex = 0;
-      await handleSelect({ target: breedSelect });
-    } else {
-      console.error("Promise resolved but HTTP status failed");
+    // logResponse(response)
+    async function logResponse(response) {
+      // console.log(typeof response.data)
+      //   console.log(response.data);
     }
+
+    for (let i of response.data) {
+      // console.log(i);
+      let breedOptions = document.createElement("option");
+      breedOptions.value = i.id;
+      breedOptions.textContent = i.name;
+      breedSelect.appendChild(breedOptions);
+    }
+
+    // Selecting the first breed of cats
+    breedSelect.selectedIndex = 0;
+    await handleSelect({ target: breedSelect });
   } catch (err) {
     console.error(err);
     // console.error("Promise rejected");
@@ -79,43 +76,45 @@ breedSelect.addEventListener("change", handleSelect);
 
 async function handleSelect(event) {
   const breedId = event.target.value;
-  // console.log(targetValue);
+  //   console.log(breedId);
   Carousel.clear();
   try {
     const newCatUrl = `https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}&limit=7`;
     //catUrl + "/" + targetValue
-    const response2 = await fetch(newCatUrl, {
+    const response2 = await axios.get(newCatUrl, {
       headers: {
         "content-type": "application/json",
         "x-api-key": API_KEY,
       },
     });
-    // `https://cdn2.thecatapi.com/images/jvg3XfEdC.jpg`;
-    if (response2.ok) {
-      console.log("Second Promise resolved and HTTP status is successful");
-      const breedArrays = await response2.json();
-      console.log(breedArrays);
-      // console.log(breedArrays[0].breeds[0]);
 
-      breedArrays.forEach((img) => {
-        // console.log(img.breeds)
-        if (img.url) {
-          const carouselItem = Carousel.createCarouselItem(
-            img.url,
-            `Image of a(n) ${img.breeds[0].name}`,
-            img.id
-          );
-          // Append the new carousel item
-          Carousel.appendCarousel(carouselItem);
-        } else {
-          console.warn(`No image found for breed: ${img.breeds[0].name}`);
-        }
-      });
+    logResponse(response2);
+    async function logResponse(response2) {
+      console.log(response2.data);
+    }
 
-      const breedData = breedArrays[0].breeds[0];
-      // console.log(breedData)
-      // Update the information section
-      infoDump.innerHTML = `
+    let breedImgs = logResponse(response2);
+
+    breedImgs.forEach((img) => {
+      // for(let img in response2)
+      // console.log(img.breeds)
+      if (img.url) {
+        const carouselItem = Carousel.createCarouselItem(
+          img.url,
+          `Image of a(n) ${img.breeds[0].name}`,
+          img.id
+        );
+        // Append the new carousel item
+        Carousel.appendCarousel(carouselItem);
+      } else {
+        console.warn(`No image found for breed: ${img.breeds[0].name}`);
+      }
+    });
+
+    const breedData = breedImgs[0].breeds[0];
+    // console.log(breedData)
+    // Update the information section
+    infoDump.innerHTML = `
         <h2>${breedData.name}</h2>
         <p>Origin: ${breedData.origin}</p>
         <p>Lifespan: ${breedData.life_span}</p>
@@ -123,11 +122,11 @@ async function handleSelect(event) {
         <p>Description: ${breedData.description}</p>
       `;
 
-      // Restart carousel if needed
-      Carousel.start();
-    } else {
-      console.error("Promise resolved but HTTP status failed");
-    }
+    // Restart carousel if needed
+    Carousel.start();
+    // } else {
+    //   console.error("Second Promise resolved but HTTP status failed");
+    // }
   } catch (err) {
     console.error(err);
   }

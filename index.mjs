@@ -38,7 +38,7 @@ async function initialLoad() {
       // ...do something with the response
       const jsonData = await response.json();
       // console.log(jsonData);
-      Carousel.clear();
+      // Carousel.clear();
       for (let i of jsonData) {
         // console.log(i);
         let breedOptions = document.createElement("option");

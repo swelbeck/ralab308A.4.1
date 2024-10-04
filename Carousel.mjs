@@ -1,5 +1,6 @@
 // import * as bootstrap from "bootstrap";
-import { favourite } from "./index.mjs";
+import { favourite } from "./axios.mjs";
+// import { favourite } from "./index.mjs";
 
 export function createCarouselItem(imgSrc, imgAlt, imgId) {
   const template = document.querySelector("#carouselItemTemplate");
