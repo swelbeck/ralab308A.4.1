@@ -76,28 +76,22 @@ breedSelect.addEventListener("change", handleSelect);
 
 async function handleSelect(event) {
   const breedId = event.target.value;
-  //   console.log(breedId);
+
   Carousel.clear();
+
   try {
     const newCatUrl = `https://api.thecatapi.com/v1/images/search?breed_ids=${breedId}&limit=7`;
     //catUrl + "/" + targetValue
-    const response2 = await axios.get(newCatUrl, {
+    const catBreeds = await axios.get(newCatUrl, {
       headers: {
         "content-type": "application/json",
         "x-api-key": API_KEY,
       },
     });
 
-    logResponse(response2);
-    async function logResponse(response2) {
-      console.log(response2.data);
-    }
+    console.log(catBreeds.data);
 
-    let breedImgs = logResponse(response2);
-
-    breedImgs.forEach((img) => {
-      // for(let img in response2)
-      // console.log(img.breeds)
+    catBreeds.data.forEach((img) => {
       if (img.url) {
         const carouselItem = Carousel.createCarouselItem(
           img.url,
@@ -111,8 +105,7 @@ async function handleSelect(event) {
       }
     });
 
-    const breedData = breedImgs[0].breeds[0];
-    // console.log(breedData)
+    const breedData = catBreeds.data[0].breeds[0];
     // Update the information section
     infoDump.innerHTML = `
         <h2>${breedData.name}</h2>
@@ -124,9 +117,6 @@ async function handleSelect(event) {
 
     // Restart carousel if needed
     Carousel.start();
-    // } else {
-    //   console.error("Second Promise resolved but HTTP status failed");
-    // }
   } catch (err) {
     console.error(err);
   }
